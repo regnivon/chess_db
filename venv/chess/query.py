@@ -41,3 +41,7 @@ class Query:
                 date = ? AND time = ?
         """
 
+        self.commands["select game datetime"] = """SELECT white, whiteElo, black, blackElo
+        ,date, time FROM Games
+        """
+

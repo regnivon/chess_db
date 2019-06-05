@@ -1,26 +1,31 @@
+# builtins
 import sqlite3
 import os
-from query import Query
+import query
 import json
+import datetime
+
+# program files
+import query
 
 
 class Database:
 
-    def __init__(self, settings, auto_connect=True, query=None):
+    def __init__(self, settings, auto_connect=True, default_query=None):
+        self.user = settings["user"]
         self.settings = settings["database"]
         self.path = self.settings["db_dir"]
         self.connected = False
         self.connection = None
         self.cursor = None
-        self.user = None
         self.create = False
         
         # will initialize a query object if one is not passed, otherwise use the one passed
         # to avoid creating multiple during a run
-        if query is None:
-            self.query = Query()
+        if default_query is None:
+            self.query = query.Query()
         else:
-            self.query = query
+            self.query = default_query
 
         if auto_connect:
             self.connect()
@@ -70,7 +75,7 @@ class Database:
         cur.execute(self.query.commands["select game {color} player".format(color=color)], (player,) )
         return cur.fetchall()
 
-    def fetch(self):
+    def fetch_all(self):
         cur = self.cursor
         cur.execute("select * from Games")
         return cur.fetchall()
@@ -87,18 +92,47 @@ class Database:
             game.result, game.term, game.moves
         ))
 
+    # fetches players, elos, and date time from all games
+    # used for elo by time graph
+    def elo_by_date(self):
+        cur = self.cursor
+        cur.execute(self.query.commands["select game datetime"])
+        game_list = list()
+        for game in cur.fetchall():
+            to_add = list()
+            if game[0] == self.user:
+                to_add.append(game[1])
+                date = game[4].split("-")
+                time = game[5][0:8]
+                time = time.split(":")
+                d = datetime.datetime(year=int(date[0]), month=int(date[1]), day=int(date[2]),
+                                      hour=int(time[0]), minute=int(time[1]), second=int(time[2]))
+                to_add.append(d)
+                game_list.append(to_add)
+            elif game[2] == self.user:
+                to_add.append(game[3])
+                date = game[4].split("-")
+                time = game[5][0:8]
+                time = time.split(":")
+                d = datetime.datetime(year=int(date[0]), month=int(date[1]), day=int(date[2]),
+                                      hour=int(time[0]), minute=int(time[1]), second=int(time[2]))
+                to_add.append(d)
+                game_list.append(to_add)
+        game_list = sorted(game_list, key=lambda x: x[1])
+        return game_list
+
 
 if __name__ == '__main__':
-    f = open("test/settings.json", 'r')
+    f = open("items/settings.json", 'r')
     load = json.load(f)
     print(load)
 
-    d = Database(load)
+    q = query.Query()
+    d = Database(load, query=q)
 
-    for item in x:
-        print(item)
+    d.elo_by_date()
 
-    s = open("test/settings.json", 'w')
+    s = open("items/settings.json", 'w')
 
     json.dump(load, s)
 

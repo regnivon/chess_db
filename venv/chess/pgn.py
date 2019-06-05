@@ -1,9 +1,12 @@
 """
 reads pgn file format games and creates game objects which will write to database
 """
+# builtins
 import re
-from game import Game
 import json
+
+# program files
+import game
 import database
 
 # TODO: add a method call to write the game to the database
@@ -30,35 +33,38 @@ class Pgn:
     term_regex    = re.compile(r'Termination ".+?"')
 
     # pass path to pgn file, pass settings dict
-    def __init__(self, filepath, settings):
+    def __init__(self, settings, database):
         self.settings = settings
-        self.player = settings["player"]
-        self.file   = filepath
+        print(settings)
+        self.player = settings["user"]
+        # self.file   = filepath
+        self.database = database
 
     # need to check this on large files might blow up if you have like years worth of
     # games in a file, this works on chess.com pgn files not sure about
     # any other site, pretty reliant on the formatting
-    def read_pgn(self):
-        data = database.Database(self.settings)
+    def read_pgn(self, file):
+        data = self.database
         try:
-            f = open(self.file, 'r')
+            f = open(file, 'r')
             text = f.read()
             f.close()
             split_games = text.split("\n\n")
             num_games = int(len(split_games)/2)
             duplicates = 0
+            imports = 0
             for i in range(0, num_games):
-                g = Game()
+                g = game.Game()
                 header_pos = i * 2
                 self.read_game(split_games[header_pos], split_games[header_pos + 1], g)
                 if not data.already_exists(g):
                     data.insert_game(g)
+                    imports += 1
                 else:
                     duplicates += 1
             data.commit()
-            data.close()
-            print("There were {dup} duplicate games.".format(dup=duplicates))
-        except error as e:
+            print("Imported {imp} games. There were {dup} duplicate games.".format(imp=imports, dup=duplicates))
+        except Exception as e:
             print(e)
 
     # calls methods to get game info and adds to game object passed
@@ -159,10 +165,11 @@ class Pgn:
 
         
 if __name__ == '__main__':
-    file = open("/Users/quentin/PycharmProjects/database/venv/test/settings.json")
+    file = open("/Users/quentin/PycharmProjects/chess_db/venv/chess/items/settings.json")
     load = json.load(file)
-    pgn = Pgn("/Users/quentin/PycharmProjects/database/venv/test/chess_com_games_2019-05-27.pgn", load)
-    pgn.read_pgn()
+    d = database.Database(load)
+    pgn = Pgn(load, d)
+    pgn.read_pgn("/Users/quentin/PycharmProjects/chess_db/venv/chess/test/chess_com_games_2019-04-15.pgn")
 
 
 
