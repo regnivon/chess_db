@@ -12,8 +12,8 @@ from PyQt5.QtCore import (QCoreApplication, QDate, Qt)
 from PyQt5.QtGui import (QColor, QImage, QPainter, QIcon, QFont)
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton,
                              QWidget, QToolTip, QMessageBox, QTabWidget, QAction, QMenu, qApp,
-                             QDialog, QLabel, QVBoxLayout, QDialogButtonBox, QFileDialog,
-                             QInputDialog, QLineEdit)
+                             QDialog, QLabel, QVBoxLayout, QHBoxLayout, QDialogButtonBox, QFileDialog,
+                             QInputDialog, QLineEdit, QFormLayout)
 
 # Chess program files
 import config
@@ -40,18 +40,21 @@ class Chess(QMainWindow):
         initial_y = 600
 
         self.resize(initial_x, initial_y)
+        self.load_params()
 
         # create initial tabs
         self.tabs = QTabWidget()
+
+        #self.tab1 = QWidget()
+        #self.tab2 = GuiEloTab.EloGraph(self.db)
+        #self.tabs.addTab(self.tab1, "Main")
+        #self.tabs.addTab(self.tab2, "ELO")
         self.setCentralWidget(self.tabs)
-        self.tab1 = QWidget()
-        self.tab2 = QWidget()
-        self.tabs.addTab(self.tab1, "Main")
-        self.tabs.addTab(self.tab2, "ELO")
+        self.create_tabs()
         # create the menu bar
         self.create_menu()
-        self.load_params()
-        self.elo_graph_tab()
+
+
 
         self.setWindowTitle("Chess DB")
         self.show()
@@ -76,6 +79,16 @@ class Chess(QMainWindow):
         self.query = query.Query()
         self.db = database.Database(self.config.settings, default_query=self.query)
 
+    def closeEvent(self, close):
+        self.exit()
+
+    # save settings and close database before exiting
+    def exit(self):
+        self.config.dump_settings()
+        self.db.close()
+        QCoreApplication.quit()
+
+    # create the menu bar, add actions to the options, methods for actions below
     def create_menu(self):
         menu = self.menuBar()
         file_menu = menu.addMenu("File")
@@ -93,24 +106,9 @@ class Chess(QMainWindow):
         import_menu.addAction(create_action("Import single file", self.import_game_file))
         import_menu.addAction(create_action("Import directory", self.import_directory))
 
-
-    def create_tabs(self):
-        pass
-
-    def closeEvent(self, close):
-        self.exit()
-
-    # save settings and close database before exiting
-    def exit(self):
-        self.config.dump_settings()
-        self.db.close()
-        QCoreApplication.quit()
-
     ###### action methods ########
 
-    #
     def import_game_file(self):
-        options = QFileDialog.Options()
         options = QFileDialog.DontUseNativeDialog
         name, _ = QFileDialog.getOpenFileName(caption="Choose a single file", directory=os.getcwd(),
                                               options=options)
@@ -136,9 +134,30 @@ class Chess(QMainWindow):
         if str(file).endswith("pgn"):
             p.read_pgn(file)
 
+    ####### Tab Methods #######
+    def create_tabs(self):
+        self.main_tab()
+        self.elo_graph_tab()
+
+    def main_tab(self):
+        main_tab = QWidget()
+        layout = QFormLayout()
+        lab = QLabel("""Welcome to chess db, if you would like to import games,
+do so through the menu bar import option. Currently pgn files are supported and 
+chess.com files are likely the most effective.""")
+        lab2 = QLabel("""Currently ELO by date or number of games played can be graphed in the Elo
+tab once games have been imported. Game analysis is currently in progress.""")
+        layout.addWidget(lab)
+        layout.addWidget(lab2)
+        main_tab.setLayout(layout)
+        self.tabs.addTab(main_tab, "Main")
+
     def elo_graph_tab(self):
-        graph = GuiEloTab.EloGraph(self.db, self)
-        self.setCentralWidget(graph)
+        graph = GuiEloTab.EloGraph(self.db)
+        self.tabs.addTab(graph, "Elo")
+
+    def analysis_tab(self):
+
 
 
 if __name__ == '__main__':
