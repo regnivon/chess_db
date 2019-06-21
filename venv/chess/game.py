@@ -1,5 +1,6 @@
-import functools
-import operator
+"""
+class to represent individual games
+"""
 
 
 class Game:
@@ -21,33 +22,24 @@ class Game:
         self.term = None
 
     def __repr__(self):
-        return """
+        return f"""
         Game object:
-            Site: {site}
-            Date: {date}
-            Event: {event}       
-            Round: {round}  
-            White: {white}
-            Black: {black} 
-            Result: {result} 
-            Variant: {variant}
-            White elo: {welo}  
-            Black elo: {belo}   
-            Time Control: {time}
-            End Time: {end}
-            Termination: {term}   
-            Moves: 
-            {moves}  
-        """.format(site=self.site, date=self.date, event=self.event, round=self.round,
-                   white=self.white, black=self.black, result=self.result,
-                   welo=self.w_elo, belo=self.b_elo, variant=self.variant,
-                   time=self.timecont, end=self.end_time, moves=self.moves, term=self.term
-                   )
-"""
-    def __hash__(self):
-        l = [self.w_elo, self.b_elo, self.date, self.end_time]
-        hashes = [hash(x) for x in l]
-        return functools.reduce(operator.xor, hashes, 0)
-"""
+            Site: {self.site}
+            Date: {self.date}
+            Event: {self.event}
+            Round: {self.round}
+            White: {self.white}
+            Black: {self.black}
+            Result: {self.result}
+            Variant: {self.variant}
+            White elo: {self.w_elo}
+            Black elo: {self.b_elo}
+            Time Control: {self.timecont}
+            End Time: {self.end_time}
+            Termination: {self.term}
+            Moves:
+            {self.moves}
+        """
+
 
 

@@ -21,8 +21,9 @@ import database
 import query
 import pgn
 
-# GUI widgets
+# Program GUI widgets
 import GuiEloTab
+import GuiAnalysis
 
 
 class Chess(QMainWindow):
@@ -93,6 +94,7 @@ class Chess(QMainWindow):
         menu = self.menuBar()
         file_menu = menu.addMenu("File")
         import_menu = menu.addMenu("Import")
+        analysis_menu = menu.addMenu("Analysis")
 
         # QAction factory
         def create_action(name, action, hot_key=None):
@@ -105,6 +107,7 @@ class Chess(QMainWindow):
         file_menu.addAction(create_action(" Quit", self.exit, "Ctrl+Q"))
         import_menu.addAction(create_action("Import single file", self.import_game_file))
         import_menu.addAction(create_action("Import directory", self.import_directory))
+        analysis_menu.addAction(create_action("Engine Path", self.set_engine_path))
 
     ###### action methods ########
 
@@ -117,7 +120,7 @@ class Chess(QMainWindow):
 
     def import_directory(self):
         name = str(QFileDialog.getExistingDirectory(caption="Choose a directory", directory=os.getcwd()))
-        print(name)
+        # print(name)
         if os.path.isdir(name):
             self.folder_import(name)
 
@@ -134,19 +137,26 @@ class Chess(QMainWindow):
         if str(file).endswith("pgn"):
             p.read_pgn(file)
 
+    def set_engine_path(self):
+        path, ok = QInputDialog.getText(self, "Configuration", "Path to engine executable:", QLineEdit.Normal)
+        if ok:
+            self.config.settings["engine"]["Path"] = path
+
     ####### Tab Methods #######
+
     def create_tabs(self):
         self.main_tab()
         self.elo_graph_tab()
+        self.analysis_tab()
 
     def main_tab(self):
         main_tab = QWidget()
         layout = QFormLayout()
-        lab = QLabel("""Welcome to chess db, if you would like to import games,
-do so through the menu bar import option. Currently pgn files are supported and 
-chess.com files are likely the most effective.""")
-        lab2 = QLabel("""Currently ELO by date or number of games played can be graphed in the Elo
-tab once games have been imported. Game analysis is currently in progress.""")
+        lab = QLabel("""Welcome to chess db, if you would like to import games,do so through the menu bar import option. 
+Currently pgn files are supported and chess.com files are likely the most effective.""")
+        lab2 = QLabel("""Currently ELO by date or number of games played can be graphed in the Elo tab once games have 
+been imported. Game analysis is in the Analysis tab, and will allow you to find moves you made that are a set distance 
+from the move stockfish would have made. You can change this distance in the options menu.""")
         layout.addWidget(lab)
         layout.addWidget(lab2)
         main_tab.setLayout(layout)
@@ -157,7 +167,8 @@ tab once games have been imported. Game analysis is currently in progress.""")
         self.tabs.addTab(graph, "Elo")
 
     def analysis_tab(self):
-
+        analysis = GuiAnalysis.Analysis(self.db, self.config.settings)
+        self.tabs.addTab(analysis, "Analysis")
 
 
 if __name__ == '__main__':

@@ -45,3 +45,7 @@ class Query:
         ,date, time FROM Games
         """
 
+        self.commands["select game table"] = """SELECT white, whiteElo, black, blackElo
+                ,date, time, result, moves FROM Games
+                """
+

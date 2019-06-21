@@ -36,25 +36,22 @@ class EloGraph(QSplitter):
         self.addWidget(frame)
 
         game_btn = QPushButton("By Games")
-        game_btn.setGeometry(200, 10, 50, 50)
         game_btn.clicked.connect(self.graph_by_game)
         date_btn = QPushButton("By Date")
         date_btn.clicked.connect(self.graph_by_date)
         refresh_btn = QPushButton("Refresh")
         refresh_btn.clicked.connect(self.refresh_graph)
 
-        self.btn_splitter = QSplitter(Qt.Vertical)
-        self.btn_splitter.setFrameShape(QFrame.StyledPanel)
+        self.btn_widget = QWidget()
+        self.btn_widget_layout = QHBoxLayout()
+        self.btn_widget.setLayout(self.btn_widget_layout)
 
-        self.btn_splitter.addWidget(game_btn)
-        self.btn_splitter.addWidget(date_btn)
-        self.btn_splitter.addWidget(refresh_btn)
-        self.addWidget(self.btn_splitter)
-
-
-
+        self.btn_widget_layout.addWidget(game_btn)
+        self.btn_widget_layout.addWidget(date_btn)
+        self.btn_widget_layout.addWidget(refresh_btn)
+        self.addWidget(self.btn_widget)
         self.fetch_games()
-        self.graph_by_date()
+        self.graph_by_game()
 
     def graph_by_date(self):
         self.game = False

@@ -26,7 +26,7 @@ class Database:
             self.query = query.Query()
         else:
             self.query = default_query
-
+            
         if auto_connect:
             self.connect()
 
@@ -119,6 +119,28 @@ class Database:
                 to_add.append(d)
                 game_list.append(to_add)
         game_list = sorted(game_list, key=lambda x: x[1])
+        return game_list
+
+    def game_by_date(self):
+        cur = self.cursor
+        cur.execute(self.query.commands["select game table"])
+        game_list = list()
+        for game in cur.fetchall():
+            to_add = list()
+            date = game[4].split("-")
+            time = game[5][0:8]
+            time = time.split(":")
+            d = datetime.datetime(year=int(date[0]), month=int(date[1]), day=int(date[2]),
+                                  hour=int(time[0]), minute=int(time[1]), second=int(time[2]))
+            to_add.append(d)
+            to_add.append(game[0])
+            to_add.append(game[1])
+            to_add.append(game[2])
+            to_add.append(game[3])
+            to_add.append(game[6])
+            to_add.append(game[7])
+            game_list.append(to_add)
+        game_list = sorted(game_list, key=lambda x: x[0], reverse=True)
         return game_list
 
 
