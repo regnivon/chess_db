@@ -58,6 +58,7 @@ class Board:
     # moves a single move on the board
     def single_move(self, move, color, check):
         # assign color
+        #print(move)
         black = False
         if color == "b":
             black = True
@@ -268,12 +269,15 @@ class Board:
         split_moves = list()
         if move_string:
             move_list = self.move_string_to_list(move_string)
+            #print(move_list)
             for move in move_list:
                 move = move.split()
                 split_moves.append(move[0])
                 if len(move) > 1:
                     split_moves.append(move[1])
+            #print(split_moves)
             for move in split_moves:
+                #print(move)
                 if not (move.startswith("1") or move.startswith("0") or move.startswith("1/2")):
                     # reset en passant target
                     if not self.ep == "-":

@@ -24,6 +24,7 @@ import pgn
 # Program GUI widgets
 import GuiEloTab
 import GuiAnalysis
+import GuiAnalysisOptions
 
 
 class Chess(QMainWindow):
@@ -36,6 +37,7 @@ class Chess(QMainWindow):
         self.query = None
         self.db = None
         self.user = None
+        self.tab_dict = dict()
 
         initial_x = 800
         initial_y = 600
@@ -54,8 +56,6 @@ class Chess(QMainWindow):
         self.create_tabs()
         # create the menu bar
         self.create_menu()
-
-
 
         self.setWindowTitle("Chess DB")
         self.show()
@@ -80,6 +80,7 @@ class Chess(QMainWindow):
         self.query = query.Query()
         self.db = database.Database(self.config.settings, default_query=self.query)
 
+    # override close event
     def closeEvent(self, close):
         self.exit()
 
@@ -108,6 +109,7 @@ class Chess(QMainWindow):
         import_menu.addAction(create_action("Import single file", self.import_game_file))
         import_menu.addAction(create_action("Import directory", self.import_directory))
         analysis_menu.addAction(create_action("Engine Path", self.set_engine_path))
+        analysis_menu.addAction(create_action("Analysis Options", self.analysis_options))
 
     ###### action methods ########
 
@@ -142,6 +144,17 @@ class Chess(QMainWindow):
         if ok:
             self.config.settings["engine"]["Path"] = path
 
+    def analysis_options(self):
+        analysis = self.tab_dict["analysis"]
+        options = GuiAnalysisOptions.AnalysisOptions(analysis)
+        options.exec_()
+        # change settings and dump to file
+        self.config.settings["engine"]["path"] = analysis.engine_path
+        self.config.settings["user"] = analysis.user
+        self.config.settings["analysis"]["threshold"] = analysis.threshold
+        self.config.settings["analysis"]["num_games"] = analysis.num_games
+        self.config.dump_settings()
+
     ####### Tab Methods #######
 
     def create_tabs(self):
@@ -162,12 +175,17 @@ from the move stockfish would have made. You can change this distance in the opt
         main_tab.setLayout(layout)
         self.tabs.addTab(main_tab, "Main")
 
+    # tab methods instatiate GUI objects then add them to the class dict for holding, then add to main window
     def elo_graph_tab(self):
         graph = GuiEloTab.EloGraph(self.db)
+        self.tab_dict["graph"] = graph
         self.tabs.addTab(graph, "Elo")
 
     def analysis_tab(self):
+        if not self.config.settings["analysis"]:
+                self.config.add_analysis_info()
         analysis = GuiAnalysis.Analysis(self.db, self.config.settings)
+        self.tab_dict["analysis"] = analysis
         self.tabs.addTab(analysis, "Analysis")
 
 
